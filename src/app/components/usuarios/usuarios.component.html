@@ -1,0 +1,40 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="text-muted">Lista de usuario</h5>
+    <input [(ngModel)]="textoBusqueda" type="text" class="form-control w-25" placeholder="Buscar usuario" />
+  </div>
+  <div class="table-responsive">
+    <table
+      class="table table-hover align-midle w-100 border"
+
+    >
+      <thead class="table-light tex-align-center">
+        <tr>
+          <th scope="col"></th>
+          <th scope="col">Nombre completo</th>
+          <th scope="col">Correo electrónico</th>
+          <th scope="col">Nacionalidad</th>
+          <th scope="col">Telefono</th>
+          <th scope="col">Website</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuario$ | async ">
+          <td><img class="rounded-circle me-2 border" [src]="usuario.avatarUrl" /></td>
+          <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+          <td>{{ usuario.email }}</td>
+          <td>
+            <img [src]="usuario.flagUrl" alt="bandera"[width]="35" class="me-1" />
+            {{ usuario.nacionalidad }}
+          </td>
+          <td >{{ usuario.phone | numeroTelefonico : usuario.country }}</td>
+          <td>
+            <a [href]="usuario.website" target="_blank">{{
+              usuario.website
+            }}</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
