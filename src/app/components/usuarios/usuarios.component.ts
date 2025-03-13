@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from '../../services/users.service';
 import { Observable } from 'rxjs';
-import { Usuarios } from '../../inertfaces/usuarios.interface';
+import { Usuarios } from '../../interfaces/usuarios.interface';
 
 @Component({
   selector: 'app-usuarios',
@@ -17,8 +17,15 @@ export class UsuariosComponent implements OnInit {
   }
 
   ngOnInit(): void {
-      this.usuario$ = this.usuarioServices.getUsuario();
+      this.usuario$ = this.usuarioServices.busqueda();
+      this.usuario$.subscribe(response => {
+        console.log(response);
 
+      })
+  }
+
+  busqueda = (term:string) => {
+    this.usuarioServices.busquedaInput(term);
   }
 
 }

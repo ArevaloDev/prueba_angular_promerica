@@ -1,7 +1,9 @@
+
+<ngx-spinner></ngx-spinner>
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="text-muted">Lista de usuario</h5>
-    <input [(ngModel)]="textoBusqueda" type="text" class="form-control w-25" placeholder="Buscar usuario" />
+    <input [(ngModel)]="textoBusqueda" type="text" (keyup.enter)="busqueda(textoBusqueda)" class="form-control w-25" placeholder="Buscar usuario" />
   </div>
   <div class="table-responsive">
     <table

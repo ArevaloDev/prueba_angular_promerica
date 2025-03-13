@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Usuarios } from '../inertfaces/usuarios.interface';
-import { catchError, finalize, forkJoin, map, Observable, of, shareReplay, switchMap, tap } from 'rxjs';
-import { Pais } from '../inertfaces/pais.interface';
+import { Usuarios } from '../interfaces/usuarios.interface';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, forkJoin, map, Observable, of, shareReplay, startWith, switchMap, tap } from 'rxjs';
+import { Pais } from '../interfaces/pais.interface';
 import { NgxSpinnerService } from 'ngx-spinner';
 
 @Injectable({
@@ -13,20 +13,40 @@ export class UsersService {
   private urlsPais: string = ' https://api.worldbank.org/v2/country';
   private avatar_url: string = 'https://ui-avatars.com/api/?name=';
   private flag_url: string = 'https://flagsapi.com';
+  private busqueda$ = new BehaviorSubject<string>('')
+  private usuario$:Observable<Usuarios[]>;
 
   constructor(
     private http: HttpClient,
     private spinner:NgxSpinnerService
 
-  ) {}
+  ) {
+    this.usuario$ = this.getUsuario();
+  }
 
-
+  busqueda = ():Observable<Usuarios[]> => {
+    /*
+    CombineLatest espera que ambos observables (usuario$ y busqueda$) emitan valores
+    Luego los combina en una sola respuesta
+    */
+    return combineLatest([this.usuario$, this.busqueda$]).pipe(
+      map(([users, term]) => {
+        if(!term.trim()) return users; //Verifica si hay un termino de busqueda, si no hay nada devuelve todos los usuarios
+        const filtrados = users.filter(user => {
+         return  user.first_name.toLowerCase().includes(term.toLowerCase()); //Convierte el nombre de cada usuario en minusculas
+        })
+        return filtrados; //retorna los usuarios filtrados
+      }
+    ))
+  }
 
   getUsuario = () => {
     this.spinner.show();
     return this.http.get<Usuarios[]>(`${this.url}`).pipe(
+
           //tap se usa para ejecutar efectos secundarios sin modificar los datos
           tap(() => this.spinner.show()), //Se activa el spinner
+          map(users => users.slice(0, 25)),
           //switchMap toma la lista de usuarios y en lugar de devolverla directamente la transforma a una nueva secuencia de peticiones
           switchMap(users => forkJoin(users.map(user => this.getUserWithCountry(user)))),
           finalize(() => this.spinner.hide()), // se ejecuta siempre, ya sea que la peticion haya sido exitosa o haya fallado
@@ -40,6 +60,7 @@ export class UsersService {
   };
 
   private getUserWithCountry = (user:Usuarios):Observable<Usuarios> => {
+
     return this.http.get<[any, Pais[]]>(`${this.urlsPais}/${user.country}?format=json`).pipe(
        //Manejo de errores con catchError
      /*
@@ -65,6 +86,11 @@ export class UsersService {
         flagUrl: `${this.flag_url}/${user.country}/flat/${64}.png`,
       }))
     );
+
+  }
+
+  public busquedaInput = (term:string) => {
+    this.busqueda$.next(term);
   }
 
 
